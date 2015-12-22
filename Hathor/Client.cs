@@ -28,6 +28,7 @@ namespace Hathor {
 			Input.DragEnter += Input_DragEnter;
 			Input.DragDrop += Input_DragDrop;
 			Input.TabIndex = 0;
+			Input.ShortcutsEnabled = true;
 
 			FontFamily FntFam = SystemFonts.MessageBoxFont.FontFamily;
 			Regular = new Font(FntFam, 12, FontStyle.Regular);
