@@ -29,6 +29,7 @@ namespace Hathor {
 	class NetClient {
 		public Socket ClientSocket;
 		public NetworkStream NStream;
+		string Name;
 
 		public bool HasPartner {
 			get {
@@ -71,7 +72,7 @@ namespace Hathor {
 
 		public NetClient(Socket S) {
 			ClientSocket = S;
-			NStream = new NetworkStream(S);
+			NStream = new NetworkStream(S);Name = ClientSocket.RemoteEndPoint.ToString();
 		}
 
 		public void SendCommand(CommandType Cmd) {
@@ -114,7 +115,7 @@ namespace Hathor {
 		}
 
 		public override string ToString() {
-			return ClientSocket.RemoteEndPoint.ToString();
+			return Name;
 		}
 	}
 
@@ -151,7 +152,7 @@ namespace Hathor {
 		static void DropClient(NetClient Client) {
 			if (Clients.Contains(Client)) {
 				Clients.Remove(Client);
-				Console.WriteLine("Dropping {0}", Client.ClientSocket.RemoteEndPoint);
+				Console.WriteLine("Dropping {0}", Client);
 				Client.Disconnect();
 			}
 		}
@@ -206,8 +207,8 @@ namespace Hathor {
 								break;
 							}
 						default:
-							Console.WriteLine("Invalid message: {0}", Cmd);
-							DropClient(NC);
+							Console.WriteLine("Invalid message {0} from {1}", Cmd, NC);
+							//DropClient(NC);
 							break;
 					}
 				}

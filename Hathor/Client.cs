@@ -8,6 +8,7 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Forms;
 using System.Threading;
+using Gitdate;
 
 namespace Hathor {
 	enum MessageSender {
@@ -73,8 +74,12 @@ namespace Hathor {
 		}
 
 		void OnMessage(string Msg) {
-			Focus();
+			Activate();
 			WriteText(Msg, MessageSender.Stranger);
+		}
+
+		string GetCurTime() {
+			return DateTime.Now.ToString("HH:mm");
 		}
 
 		void WriteText(string In, MessageSender MS = MessageSender.Server) {
@@ -92,6 +97,8 @@ namespace Hathor {
 				Status.Text = In;
 			}
 			if (MS != MessageSender.Info) {
+				Output.AppendText(GetCurTime());
+				Output.AppendText(" - ");
 				Output.AppendText(MS.ToString());
 				Output.AppendText(": ");
 				ResetTextStyle();
@@ -107,6 +114,14 @@ namespace Hathor {
 		}
 
 		private void Client_Load(object sender, EventArgs e) {
+			new Thread(() => {
+				Updater.Username = "cartman300";
+				Updater.Repository = "Hathor";
+				Updater.CheckAndUpdate((L) => {
+					WriteText("Downloading update " + L.tag_name, MessageSender.Info);
+				});
+			}).Start();
+
 			HC = new HathorClient();
 			HC.StrangerConnected += () => {
 				Output.Clear();

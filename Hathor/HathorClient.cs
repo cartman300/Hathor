@@ -10,8 +10,8 @@ using System.Net.Sockets;
 
 namespace Hathor {
 	class HathorClient {
-		//static IPAddress ServerIP = IPAddress.Parse("127.0.0.1");
-		static IPAddress ServerIP = IPAddress.Parse("51.254.129.74");
+		static IPAddress ServerIP = IPAddress.Parse("127.0.0.1");
+		//static IPAddress ServerIP = IPAddress.Parse("51.254.129.74");
 
 		Socket Server;
 		NetworkStream NStream;
