@@ -4,14 +4,14 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using System.IO;
-using System.Threading;
+using System.Threading;using System.Drawing;
 using System.Net;
 using System.Net.Sockets;
 
 namespace Hathor {
 	class HathorClient {
-		static IPAddress ServerIP = IPAddress.Parse("127.0.0.1");
-		//static IPAddress ServerIP = IPAddress.Parse("51.254.129.74");
+		//static IPAddress ServerIP = IPAddress.Parse("127.0.0.1");
+		static IPAddress ServerIP = IPAddress.Parse("51.254.129.74");
 
 		Socket Server;
 		NetworkStream NStream;
@@ -36,6 +36,7 @@ namespace Hathor {
 
 		public event Action Disconnected, StrangerConnected, StrangerDisconnected;
 		public event Action<string> MessageReceived;
+		public event Action<Image> ImageReceived;
 
 		public void Run() {
 			while (true) {
@@ -69,6 +70,13 @@ namespace Hathor {
 							string Msg = NStream.ReadString();
 							if (MessageReceived != null)
 								MessageReceived(Msg);
+							break;
+						}
+					case CommandType.ReceiveImage:
+						{
+							Image Img = NStream.ReadImage();
+							if (ImageReceived != null)
+								ImageReceived(Img);
 							break;
 						}
 				}
@@ -111,6 +119,10 @@ namespace Hathor {
 			return SendCommand(CommandType.SendMessage, Msg);
 		}
 
+		public bool SendImage(Image Img) {
+			return SendCommand(CommandType.SendImage, Img);
+		}
+
 		public bool SendCommand(CommandType Cmd) {
 			if (IsConnected) {
 				NStream.WriteByte((byte)Cmd);
@@ -120,10 +132,15 @@ namespace Hathor {
 			return false;
 		}
 
-		public bool SendCommand(CommandType Cmd, string Msg) {
+		public bool SendCommand(CommandType Cmd, object Msg) {
 			if (IsConnected) {
 				NStream.WriteByte((byte)Cmd);
-				NStream.WriteString(Msg);
+				if (Msg is string)
+					NStream.WriteString((string)Msg);
+				else if (Msg is Image)
+					NStream.WriteImage((Image)Msg);
+				else
+					throw new NotImplementedException();
 				NStream.Flush();
 				return true;
 			}

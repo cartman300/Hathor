@@ -4,16 +4,19 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using System.Threading;
+using System.Diagnostics;
 using System.Windows.Forms;
 
 namespace Hathor {
 	class Program {
 		[STAThread]
 		static void Main(string[] args) {
-			AppDomain.CurrentDomain.UnhandledException += (S, E) => {
-				MessageBox.Show(E.ExceptionObject.ToString(), "Oh noez!", MessageBoxButtons.OK, MessageBoxIcon.Error);
-				Environment.Exit(1);
-			};
+			if (!Debugger.IsAttached) {
+				AppDomain.CurrentDomain.UnhandledException += (S, E) => {
+					MessageBox.Show(E.ExceptionObject.ToString(), "Oh noez!", MessageBoxButtons.OK, MessageBoxIcon.Error);
+					Environment.Exit(1);
+				};
+			}
 			Application.EnableVisualStyles();
 			Application.Run(new Client());
 

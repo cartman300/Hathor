@@ -10,6 +10,7 @@ using System.Net;
 using System.Net.Sockets;
 using System.Runtime;
 using System.Diagnostics;
+using System.Drawing;
 
 using Con = System.Console;
 using System.Reflection;
@@ -72,7 +73,8 @@ namespace Hathor {
 
 		public NetClient(Socket S) {
 			ClientSocket = S;
-			NStream = new NetworkStream(S);Name = ClientSocket.RemoteEndPoint.ToString();
+			NStream = new NetworkStream(S);
+			Name = ClientSocket.RemoteEndPoint.ToString();
 		}
 
 		public void SendCommand(CommandType Cmd) {
@@ -82,16 +84,21 @@ namespace Hathor {
 			} catch (IOException) {
 			}
 		}
-
-		public void SendCommand(CommandType Cmd, string Msg) {
+		
+		public void SendCommand(CommandType Cmd, object Msg) {
 			try {
 				NStream.WriteByte((byte)Cmd);
-				NStream.WriteString(Msg);
+				if (Msg is string)
+					NStream.WriteString((string)Msg);
+				else if (Msg is Image)
+					NStream.WriteImage((Image)Msg);
+				else
+					throw new NotImplementedException();
 				NStream.Flush();
 			} catch (IOException) {
 			}
 		}
-
+		
 		public bool AwaitCommand(CommandType Cmd) {
 			if (!IsConnected)
 				return false;
@@ -184,7 +191,7 @@ namespace Hathor {
 										break;
 									}
 								}
-							
+
 							}
 							break;
 						case CommandType.DropStranger:
@@ -200,8 +207,21 @@ namespace Hathor {
 							{
 								string Msg = NC.NStream.ReadString();
 								Console.WriteLine("{0}: {1}", NC, Msg.Trim());
+
 								if (NC.HasPartner)
 									NC.Partner.SendCommand(CommandType.ReceiveMessage, Msg);
+								else
+									NC.SendCommand(CommandType.InvalidRequest);
+								break;
+							}
+						case CommandType.SendImage:
+							{
+								ImageConverter ICon = new ImageConverter();
+								Image Img = NC.NStream.ReadImage();
+								Console.WriteLine("Image from {0}", NC);
+
+								if (NC.HasPartner)
+									NC.Partner.SendCommand(CommandType.ReceiveImage, Img);
 								else
 									NC.SendCommand(CommandType.InvalidRequest);
 								break;

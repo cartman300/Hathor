@@ -16,6 +16,8 @@ namespace Hathor {
 		StrangerDisconnected,
 
 		ReceiveMessage,
-		SendMessage
+		SendMessage,
+		SendImage,
+		ReceiveImage
 	}
 }

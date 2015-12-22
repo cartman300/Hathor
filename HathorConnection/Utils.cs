@@ -4,23 +4,42 @@ using System.Text;
 using System.IO;
 using System.Net;
 using System.Net.Sockets;
+using System.Drawing;
 
 namespace Hathor {
 	static class Utils {
+		static ImageConverter ICon = new ImageConverter();
+
+		public static void WriteBytes(this NetworkStream NS, byte[] Bytes) {
+			byte[] LenBytes = BitConverter.GetBytes((uint)Bytes.Length);
+			NS.Write(LenBytes, 0, sizeof(uint));
+			NS.Write(Bytes, 0, Bytes.Length);
+		}
+
+		public static byte[] ReadBytes(this NetworkStream NS) {
+			byte[] LenBytes = new byte[sizeof(uint)];
+			NS.Read(LenBytes, 0, sizeof(uint));
+			int Len = BitConverter.ToInt32(LenBytes, 0);
+			byte[] Bytes = new byte[Len];
+			NS.Read(Bytes, 0, Len);
+			return Bytes;
+		}
+
 		public static void WriteString(this NetworkStream NS, string Str) {
-			byte[] StringBytes = Encoding.Unicode.GetBytes(Str);
-			byte[] LenBytes = BitConverter.GetBytes((int)StringBytes.Length);
-			NS.Write(LenBytes, 0, sizeof(int));
-			NS.Write(StringBytes, 0, StringBytes.Length);
+			NS.WriteBytes(Encoding.Unicode.GetBytes(Str));
 		}
 
 		public static string ReadString(this NetworkStream NS) {
-			byte[] LenBytes = new byte[sizeof(int)];
-			NS.Read(LenBytes, 0, sizeof(int));
-			int Len = BitConverter.ToInt32(LenBytes, 0);
-			byte[] StrBytes = new byte[Len];
-			NS.Read(StrBytes, 0, Len);
-			return Encoding.Unicode.GetString(StrBytes);
+			return Encoding.Unicode.GetString(NS.ReadBytes());
+		}
+
+		public static void WriteImage(this NetworkStream NS, Image Img) {
+			NS.WriteBytes((byte[])ICon.ConvertTo(Img, typeof(byte[])));
+
+		}
+
+		public static Image ReadImage(this NetworkStream NS) {
+			return (Image)ICon.ConvertFrom(NS.ReadBytes());
 		}
 	}
 }
