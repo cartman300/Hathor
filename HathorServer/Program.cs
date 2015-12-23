@@ -90,8 +90,8 @@ namespace Hathor {
 				NStream.WriteByte((byte)Cmd);
 				if (Msg is string)
 					NStream.WriteString((string)Msg);
-				else if (Msg is Image)
-					NStream.WriteImage((Image)Msg);
+				else if (Msg is byte[])
+					NStream.WriteBytes((byte[])Msg);
 				else
 					throw new NotImplementedException();
 				NStream.Flush();
@@ -143,7 +143,7 @@ namespace Hathor {
 
 			Clients = new List<NetClient>();
 
-			IPEndPoint LocalEndPoint = new IPEndPoint(IPAddress.Any, 7418);
+			IPEndPoint LocalEndPoint = new IPEndPoint(IPAddress.Any, Utils.Port);
 			Socket Sock = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
 			Sock.Bind(LocalEndPoint);
 			Sock.Listen(10);
@@ -159,6 +159,8 @@ namespace Hathor {
 		static void DropClient(NetClient Client) {
 			if (Clients.Contains(Client)) {
 				Clients.Remove(Client);
+				if (Client.HasPartner)
+					Client.SetPartner(null);
 				Console.WriteLine("Dropping {0}", Client);
 				Client.Disconnect();
 			}
@@ -216,9 +218,9 @@ namespace Hathor {
 							}
 						case CommandType.SendImage:
 							{
-								ImageConverter ICon = new ImageConverter();
-								Image Img = NC.NStream.ReadImage();
-								Console.WriteLine("Image from {0}", NC);
+								uint Len;
+								byte[] Img = NC.NStream.ReadBytes(out Len);
+								Console.WriteLine("Image[{1}] from {0}", NC, Len);
 
 								if (NC.HasPartner)
 									NC.Partner.SendCommand(CommandType.ReceiveImage, Img);
@@ -228,11 +230,11 @@ namespace Hathor {
 							}
 						default:
 							Console.WriteLine("Invalid message {0} from {1}", Cmd, NC);
-							//DropClient(NC);
+							DropClient(NC);
 							break;
 					}
 				}
-				if (PingCounter++ >= 100) {
+				if (PingCounter++ >= 500) {
 					PingCounter = 0;
 					NC.Ping();
 				}

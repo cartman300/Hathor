@@ -12,6 +12,7 @@ namespace Hathor {
 	class HathorClient {
 		//static IPAddress ServerIP = IPAddress.Parse("127.0.0.1");
 		static IPAddress ServerIP = IPAddress.Parse("51.254.129.74");
+		//static IPAddress ServerIP = IPAddress.Parse("178.150.102.66"); // Mij
 
 		Socket Server;
 		NetworkStream NStream;
@@ -89,9 +90,11 @@ namespace Hathor {
 					Server = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
 				if (IsConnected)
 					Disconnect();
-				Server.Connect(new IPEndPoint(ServerIP, 7418));
+				Server.Connect(new IPEndPoint(ServerIP, Utils.Port));
 				NStream = new NetworkStream(Server);
-			} catch (Exception E) { return E; }
+			} catch (Exception E) {
+				return E;
+			}
 			return null;
 		}
 
