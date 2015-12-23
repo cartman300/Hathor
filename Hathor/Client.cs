@@ -199,6 +199,7 @@ namespace Hathor {
 		private void Btn_Click(object sender, EventArgs e) {
 			if (Btn.Text == "New") {
 				Btn.Enabled = false;
+				Output.Invoke(new Action(Output.Clear));
 				Exception E = null;
 				if ((E = HC.RequestStranger()) == null) {
 					Btn.Text = "Disconnect";
