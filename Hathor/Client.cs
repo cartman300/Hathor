@@ -191,13 +191,6 @@ namespace Hathor {
 			HC.MessageReceived += OnMessage;
 			HC.ImageReceived += OnMessage;
 
-			new Thread(() => {
-				Status.Text = "Connecting to server";
-				Exception E = HC.Connect();
-				if (E != null)
-					Status.Text = E.Message;
-			}).Start();
-
 			Thread RunThread = new Thread(HC.Run);
 			RunThread.IsBackground = true;
 			RunThread.Start();
@@ -206,8 +199,15 @@ namespace Hathor {
 		private void Btn_Click(object sender, EventArgs e) {
 			if (Btn.Text == "New") {
 				Btn.Enabled = false;
-				HC.RequestStranger();
-				Btn.Text = "Disconnect";
+				Exception E = null;
+				if ((E = HC.RequestStranger()) == null) {
+					Btn.Text = "Disconnect";
+					WriteText("Waiting for stranger", MessageSender.Info);
+				} else {
+					Btn.Enabled = true;
+					WriteText(E.Message, MessageSender.Info);
+					WriteText("Failed to connect to master server, please try again", MessageSender.Info);
+				}
 			} else if (Btn.Text == "Disconnect") {
 				Btn.Text = "Are you sure?";
 			} else {

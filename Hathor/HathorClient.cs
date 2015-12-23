@@ -38,6 +38,7 @@ namespace Hathor {
 		public event Action Disconnected, StrangerConnected, StrangerDisconnected;
 		public event Action<string> MessageReceived;
 		public event Action<Image> ImageReceived;
+		public event Action<Exception> FailedToConnect;
 
 		public void Run() {
 			while (true) {
@@ -93,6 +94,8 @@ namespace Hathor {
 				Server.Connect(new IPEndPoint(ServerIP, Utils.Port));
 				NStream = new NetworkStream(Server);
 			} catch (Exception E) {
+				if (FailedToConnect != null)
+					FailedToConnect(E);
 				return E;
 			}
 			return null;
@@ -108,10 +111,12 @@ namespace Hathor {
 				Disconnected();
 		}
 
-		public void RequestStranger() {
+		public Exception RequestStranger() {
+			Exception Ex = null;
 			if (!IsConnected)
-				Connect();
+				Ex = Connect();
 			SendCommand(CommandType.RequestStranger);
+			return Ex;
 		}
 
 		public void DisconnectFromStranger() {
