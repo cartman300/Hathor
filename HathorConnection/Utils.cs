@@ -13,15 +13,16 @@ namespace Hathor {
 		static ImageConverter ICon = new ImageConverter();
 
 		public static byte[] Compress(byte[] B) {
-			using (MemoryStream MS = new MemoryStream()) {
+			/*using (MemoryStream MS = new MemoryStream()) {
 				using (GZipStream GZip = new GZipStream(MS, CompressionLevel.Optimal))
 					GZip.Write(B, 0, B.Length);
 				return MS.ToArray();
-			}
+			}*/
+			return B;
 		}
 
 		public static byte[] Decompress(byte[] B) {
-			using (GZipStream GZipStream = new GZipStream(new MemoryStream(B), CompressionMode.Decompress)) {
+			/*using (GZipStream GZipStream = new GZipStream(new MemoryStream(B), CompressionMode.Decompress)) {
 				using (MemoryStream Mem = new MemoryStream()) {
 					byte[] Buffer = new byte[4096];
 					int Cnt = 0;
@@ -31,18 +32,20 @@ namespace Hathor {
 					} while (Cnt > 0);
 					return Mem.ToArray();
 				}
-			}
+			}*/
+			return B;
 		}
 
-		public static void WriteBytes(this NetworkStream NS, byte[] Bytes) {
-			Bytes = Compress(Bytes);
+		public static void WriteBytes(this NetworkStream NS, byte[] Bytes, bool DoCompress = true) {
+			if (DoCompress)
+				Bytes = Compress(Bytes);
 			byte[] LenBytes = BitConverter.GetBytes((uint)Bytes.Length);
 			NS.Write(LenBytes, 0, sizeof(uint));
 			NS.Write(Bytes, 0, Bytes.Length);
 			NS.Flush();
 		}
 
-		public static byte[] ReadBytes(this NetworkStream NS, out uint Len) {
+		public static byte[] ReadBytes(this NetworkStream NS, out uint Len, bool DoDecompress = true) {
 			byte[] LenBytes = new byte[sizeof(uint)];
 			NS.Read(LenBytes, 0, sizeof(uint));
 			Len = BitConverter.ToUInt32(LenBytes, 0);
@@ -50,7 +53,9 @@ namespace Hathor {
 			//NS.Read(Bytes, 0, Bytes.Length);
 			for (int i = 0; i < Bytes.Length; i++)
 				Bytes[i] = (byte)NS.ReadByte();
-			return Decompress(Bytes);
+			if (DoDecompress)
+				Bytes = Decompress(Bytes);
+			return Bytes;
 		}
 
 		public static void WriteString(this NetworkStream NS, string Str) {

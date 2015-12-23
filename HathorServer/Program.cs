@@ -85,13 +85,13 @@ namespace Hathor {
 			}
 		}
 		
-		public void SendCommand(CommandType Cmd, object Msg) {
+		public void SendCommand(CommandType Cmd, object Msg, bool DoCompress = true) {
 			try {
 				NStream.WriteByte((byte)Cmd);
 				if (Msg is string)
 					NStream.WriteString((string)Msg);
 				else if (Msg is byte[])
-					NStream.WriteBytes((byte[])Msg);
+					NStream.WriteBytes((byte[])Msg, DoCompress);
 				else
 					throw new NotImplementedException();
 				NStream.Flush();
@@ -219,11 +219,11 @@ namespace Hathor {
 						case CommandType.SendImage:
 							{
 								uint Len;
-								byte[] Img = NC.NStream.ReadBytes(out Len);
+								byte[] Img = NC.NStream.ReadBytes(out Len, false);
 								Console.WriteLine("Image[{1}] from {0}", NC, Len);
 
 								if (NC.HasPartner)
-									NC.Partner.SendCommand(CommandType.ReceiveImage, Img);
+									NC.Partner.SendCommand(CommandType.ReceiveImage, Img, false);
 								else
 									NC.SendCommand(CommandType.InvalidRequest);
 								break;
