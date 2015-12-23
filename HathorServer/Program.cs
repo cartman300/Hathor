@@ -84,7 +84,7 @@ namespace Hathor {
 			} catch (IOException) {
 			}
 		}
-		
+
 		public void SendCommand(CommandType Cmd, object Msg, bool DoCompress = true) {
 			try {
 				NStream.WriteByte((byte)Cmd);
@@ -98,7 +98,7 @@ namespace Hathor {
 			} catch (IOException) {
 			}
 		}
-		
+
 		public bool AwaitCommand(CommandType Cmd) {
 			if (!IsConnected)
 				return false;
@@ -128,9 +128,15 @@ namespace Hathor {
 
 	class Program {
 		static List<NetClient> Clients;
+		static Random Rand;
 
 		static void Main(string[] args) {
 			Console.WriteLine("Initializing server");
+			Rand = new Random();
+
+			AppDomain.CurrentDomain.UnhandledException += (S, E) => {
+				File.AppendAllText("error.txt", E.ExceptionObject.ToString());
+			};
 
 			Process Cur = Process.GetCurrentProcess();
 			Process[] Servers = Process.GetProcessesByName(Path.GetFileNameWithoutExtension(Assembly.GetExecutingAssembly().Location));
@@ -184,7 +190,7 @@ namespace Hathor {
 								NC.SendCommand(CommandType.InvalidRequest);
 							else {
 								NC.SearchingForPartner = true;
-								for (int i = 0; i < Clients.Count; i++) {
+								foreach (int i in Enumerable.Range(0, Clients.Count).OrderBy(X => Rand.Next())) {
 									NetClient Stranger = Clients[i];
 									if (Stranger != null && Stranger != NC && !Stranger.HasPartner &&
 										Stranger.SearchingForPartner && NC.SearchingForPartner) {
@@ -193,7 +199,6 @@ namespace Hathor {
 										break;
 									}
 								}
-
 							}
 							break;
 						case CommandType.DropStranger:
@@ -228,9 +233,11 @@ namespace Hathor {
 									NC.SendCommand(CommandType.InvalidRequest);
 								break;
 							}
+						case CommandType.PingResponse:
+							break;
 						default:
 							Console.WriteLine("Invalid message {0} from {1}", Cmd, NC);
-							DropClient(NC);
+							//DropClient(NC);
 							break;
 					}
 				}
