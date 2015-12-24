@@ -175,6 +175,7 @@ namespace Hathor {
 				Updater.Repository = "Hathor";
 				Updater.CheckAndUpdate((L) => {
 					WriteText("Downloading update " + L.tag_name, MessageSender.Info);
+					WriteText("The update will install after the program closes", MessageSender.Info);
 				});
 			}).Start();
 
